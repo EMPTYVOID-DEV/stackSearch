@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "NodeNext",
+    "module": "CommonJS",
+    "target": "ES2020",
+    "outDir": "./Dist",
+    "rootDir": "./Src"
+  },
+  "include": ["Src"]
+}
