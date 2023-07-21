@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
     "moduleResolution": "NodeNext",
-    "module": "CommonJS",
+    "module": "NodeNext",
     "target": "ES2020",
     "outDir": "./Dist",
-    "rootDir": "./Src"
+    "rootDir": "./Src",
+    "allowSyntheticDefaultImports": true
   },
   "include": ["Src"]
 }
