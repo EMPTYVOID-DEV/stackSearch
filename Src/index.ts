@@ -9,12 +9,23 @@ dotenv.config({
   path: path.join(__dirname, "../.env"),
 });
 
+puppeteer.use(stealthPlugin());
+
+type error =
+  | "Never been asked before on stackoverflow"
+  | "Hasn't been answered yet in stackoverflow"
+  | "The bot has been blocked";
+
+type resualt = {
+  type: 0 | 1;
+  data: string[] | error;
+};
+
 async function handleAsync<T>(promise: Promise<T>): Promise<[T | null, any]> {
   try {
     let data = await promise;
     return [data, null];
   } catch (error) {
-    console.log(error);
     return [null, error];
   }
 }
@@ -56,7 +67,7 @@ async function randomClicks(page: Page) {
   );
 }
 
-async function enterNavigate(page) {
+async function enterNavigate(page: Page) {
   let keyboard = page.keyboard;
   return await Promise.all([
     handleAsync(keyboard.press("Enter")),
@@ -64,36 +75,60 @@ async function enterNavigate(page) {
   ]);
 }
 
-async function proxyConnection(): Promise<[Browser, string]> {
+async function proxyConnection(withProxy: boolean): Promise<[Browser, string]> {
   const exposedProxyUrl = `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_URL}`;
   const secureProxyUrl = await proxyChain.anonymizeProxy(exposedProxyUrl);
   let browser: Browser = await puppeteer.launch({
-    headless: false,
+    headless: "old",
     executablePath: process.env.LOCAL_BROWSER_PATH,
-    //args: [`--proxy-server=${secureProxyUrl}`],
+    args: withProxy ? [`--proxy-server=${secureProxyUrl}`] : [],
   });
   return [browser, secureProxyUrl];
 }
 
-async function main() {
-  const [browser, secureProxyUrl] = await proxyConnection();
+export async function main(
+  questionQuery: string,
+  withProxy: boolean
+): Promise<resualt> {
+  const [browser, secureProxyUrl] = await proxyConnection(withProxy);
   const page = await browser.newPage();
   await page.goto("https://google.com/");
-  await typeField(page, "#APjFqb", "sveltekit and fastapi serve");
+  await typeField(page, "#APjFqb", questionQuery);
   await enterNavigate(page);
-  let answerLink = await page.$x(
-    '//span[@class="VuuXrf" and text()="Stack Overflow"]'
-  )[0];
-  await clickNavigate(page, answerLink);
-  await timeout(1000);
-  await page.screenshot({
-    path: "./img.jpg",
-  });
-  await timeout(8000);
+  const [anchor, error] = await handleAsync<ElementHandle>(
+    page.$(
+      '.MjjYud > .g.Ww4FFb > .kvH3mc > .jGGQ5e a[href^="https://stackoverflow.com/"]'
+    )
+  );
+  if (error)
+    return {
+      type: 1,
+      data: "Never been asked before on stackoverflow",
+    };
+  await clickNavigate(page, anchor);
+  await timeout(3000);
+  await randomClicks(page);
+  const [answersBlock, error2] = await handleAsync<ElementHandle>(
+    page.$("#answers")
+  );
+  if (error2)
+    return {
+      type: 1,
+      data: "Hasn't been answered yet in stackoverflow",
+    };
+  const [answers] = await handleAsync<string[]>(
+    answersBlock.$$eval(
+      'div.answer[id^="answer-"] .answercell.post-layout--right > .s-prose.js-post-body',
+      (elementList) => {
+        const answersList = elementList.map(
+          (el) => (el as HTMLElement).innerText
+        );
+        return answersList;
+      }
+    )
+  );
   await browser.close();
   await proxyChain.closeAnonymizedProxy(secureProxyUrl, true);
+  return { type: 0, data: answers };
 }
-
-puppeteer.use(stealthPlugin());
-
-main();
+main("statically server react app from fastapi", false);
