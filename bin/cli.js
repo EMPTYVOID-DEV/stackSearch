@@ -1,5 +1,4 @@
-#!/usr/bin/env node
-
+#!C:/Users/hp/Documents/node/main/nodejs/node
 import { main } from "./index.js";
 import inquirer from "inquirer";
 import chalk from "chalk";

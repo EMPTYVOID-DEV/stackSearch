@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "Dist/cli.js",
-  "bin":"./Dist/cli.js",
+  "main": "bin/cli.js",
+  "bin": {
+    "stack-search": "./bin/cli.js"
+  },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc && node Dist/index.js"
+    "dev": "tsc && node bin/index.js"
   },
   "author": "",
   "license": "ISC",

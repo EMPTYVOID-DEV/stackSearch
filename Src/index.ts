@@ -17,7 +17,7 @@ puppeteer.use(stealthPlugin());
 type error =
   | "Never been asked before on stackoverflow"
   | "Hasn't been answered yet in stackoverflow"
-  | "The bot has been blocked";
+  | "Your network is slow";
 
 type resualt = {
   type: 0 | 1;
@@ -41,14 +41,28 @@ async function timeout(delay: number) {
   });
 }
 
-async function clickNavigate(page: Page, selector: string | ElementHandle) {
+async function clickNavigate(
+  page: Page,
+  selector: string | ElementHandle
+): Promise<null | resualt> {
+  let navPromise = null;
   if (typeof selector == "string") {
-    return Promise.all([
+    navPromise = Promise.all([
       handleAsync(page.click(selector)),
       page.waitForNavigation(),
     ]);
+  } else {
+    navPromise = Promise.all([
+      handleAsync(selector.click()),
+      page.waitForNavigation(),
+    ]);
   }
-  return Promise.all([handleAsync(selector.click()), page.waitForNavigation()]);
+  try {
+    await navPromise;
+    return null;
+  } catch (error) {
+    return { type: 1, data: "Your network is slow" };
+  }
 }
 
 async function typeField(page: Page, selector: string, message: string) {
@@ -70,12 +84,18 @@ async function randomClicks(page: Page) {
   );
 }
 
-async function enterNavigate(page: Page) {
+async function enterNavigate(page: Page): Promise<null | resualt> {
   let keyboard = page.keyboard;
-  return await Promise.all([
+  let navPromise = Promise.all([
     handleAsync(keyboard.press("Enter")),
     page.waitForNavigation(),
   ]);
+  try {
+    await navPromise;
+    return null;
+  } catch (error) {
+    return { type: 1, data: "Your network is slow" };
+  }
 }
 
 async function proxyConnection(withProxy: boolean): Promise<[Browser, string]> {
@@ -102,20 +122,25 @@ export async function main(
 ): Promise<resualt> {
   const [browser, secureProxyUrl] = await proxyConnection(withProxy);
   const page = await browser.newPage();
+  page.setDefaultNavigationTimeout(45000);
   await page.goto("https://google.com/");
   await typeField(page, "#APjFqb", questionQuery + " stackoverflow");
-  await enterNavigate(page);
+  let resualt = await enterNavigate(page);
+  if (resualt != null) {
+    return resualt;
+  }
   const anchor = await page.$(
-    '.MjjYud > .g.Ww4FFb > .kvH3mc > .jGGQ5e a[href^="https://stackoverflow.com/"]'
+    '#search .MjjYud .yuRUbf a[href^="https://stackoverflow.com/"]'
   );
   if (!anchor)
     return {
       type: 1,
       data: "Never been asked before on stackoverflow",
     };
-  await clickNavigate(page, anchor);
-  await timeout(2000);
-  await randomClicks(page);
+  let resualt2 = await clickNavigate(page, anchor);
+  if (resualt2 != null) {
+    return resualt2;
+  }
   const answersBlock = await page.$("#answers");
   if (!answersBlock)
     return {
@@ -134,7 +159,6 @@ export async function main(
     )
   );
   await browser.close();
-  withProxy && (await proxyChain.closeAnonymizedProxy(secureProxyUrl, true));
+  await proxyChain.closeAnonymizedProxy(secureProxyUrl, true);
   return { type: 0, data: answers };
 }
-main("statically server react app from fastapi", false);
