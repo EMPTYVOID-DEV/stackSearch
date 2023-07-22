@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { main } from "./index.js";
 import inquirer from "inquirer";
 import chalk from "chalk";
@@ -35,7 +37,7 @@ async function displayAnswers(answers, fetchSpinner) {
         ${chalk.cyan(answers[currentAnswer])}
         `,
   });
-  while (currentAnswer < answers.length) {
+  while (currentAnswer < answers.length - 1) {
     currentAnswer++;
     const moreAnswers = await inquirer.prompt({
       name: "bool",

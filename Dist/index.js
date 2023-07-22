@@ -1,12 +1,12 @@
+#!/usr/bin/env node
+
 import proxyChain from "proxy-chain";
 import puppeteer from "puppeteer-extra";
 import stealthPlugin from "puppeteer-extra-plugin-stealth";
 import path, { dirname } from "path";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
-
 dotenv.config({
   path: path.join(__dirname, "../.env"),
 });
@@ -60,14 +60,21 @@ async function enterNavigate(page) {
   ]);
 }
 async function proxyConnection(withProxy) {
-  const exposedProxyUrl = `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_URL}`;
-  const secureProxyUrl = await proxyChain.anonymizeProxy(exposedProxyUrl);
+  if (withProxy) {
+    const exposedProxyUrl = `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_URL}`;
+    const secureProxyUrl = await proxyChain.anonymizeProxy(exposedProxyUrl);
+    let browser = await puppeteer.launch({
+      headless: "old",
+      executablePath: process.env.LOCAL_BROWSER_PATH,
+      args: [`--proxy-server=${secureProxyUrl}`],
+    });
+    return [browser, secureProxyUrl];
+  }
   let browser = await puppeteer.launch({
     headless: "old",
     executablePath: process.env.LOCAL_BROWSER_PATH,
-    args: withProxy ? [`--proxy-server=${secureProxyUrl}`] : [],
   });
-  return [browser, secureProxyUrl];
+  return [browser, ""];
 }
 export async function main(questionQuery, withProxy) {
   const [browser, secureProxyUrl] = await proxyConnection(withProxy);
@@ -86,7 +93,9 @@ export async function main(questionQuery, withProxy) {
       data: "Never been asked before on stackoverflow",
     };
   await clickNavigate(page, anchor);
+  await timeout(1200);
   await randomClicks(page);
+  await timeout(1200);
   const [answersBlock, error2] = await handleAsync(page.$("#answers"));
   if (error2)
     return {
@@ -106,4 +115,3 @@ export async function main(questionQuery, withProxy) {
   await proxyChain.closeAnonymizedProxy(secureProxyUrl, true);
   return { type: 0, data: answers };
 }
-main("statically server react app from fastapi", false);

@@ -79,14 +79,21 @@ async function enterNavigate(page: Page) {
 }
 
 async function proxyConnection(withProxy: boolean): Promise<[Browser, string]> {
-  const exposedProxyUrl = `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_URL}`;
-  const secureProxyUrl = await proxyChain.anonymizeProxy(exposedProxyUrl);
+  if (withProxy) {
+    const exposedProxyUrl = `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_URL}`;
+    const secureProxyUrl = await proxyChain.anonymizeProxy(exposedProxyUrl);
+    let browser: Browser = await puppeteer.launch({
+      headless: "old",
+      executablePath: process.env.LOCAL_BROWSER_PATH,
+      args: [`--proxy-server=${secureProxyUrl}`],
+    });
+    return [browser, secureProxyUrl];
+  }
   let browser: Browser = await puppeteer.launch({
     headless: "old",
     executablePath: process.env.LOCAL_BROWSER_PATH,
-    args: withProxy ? [`--proxy-server=${secureProxyUrl}`] : [],
   });
-  return [browser, secureProxyUrl];
+  return [browser, ""];
 }
 
 export async function main(
@@ -109,7 +116,7 @@ export async function main(
       data: "Never been asked before on stackoverflow",
     };
   await clickNavigate(page, anchor);
-  await timeout(3000);
+  await timeout(2000);
   await randomClicks(page);
   const [answersBlock, error2] = await handleAsync<ElementHandle>(
     page.$("#answers")
@@ -131,7 +138,7 @@ export async function main(
     )
   );
   await browser.close();
-  await proxyChain.closeAnonymizedProxy(secureProxyUrl, true);
+  withProxy && (await proxyChain.closeAnonymizedProxy(secureProxyUrl, true));
   return { type: 0, data: answers };
 }
 main("statically server react app from fastapi", false);
