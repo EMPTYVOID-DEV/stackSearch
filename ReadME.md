@@ -26,12 +26,15 @@ You may need to change the path to your chrome browser and you dont need to add 
 4-run this command (add sudo if use linux)
 
 ```
- npm install -g stackSearch
+ npm install -g
 ```
 
 ### How to use it
 
 1-type stack search in your cli
+
 2-enter the question
+
 3-choose whether to use proxy rotation or not
+
 4-get the answer and you will be prompted to whether it print the next answer (answers are ordered by voting)

@@ -1,12 +1,10 @@
 {
-  "name": "stackSearch",
+  "name": "stack-search",
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "./Dist/cli.js",
-  "bin": {
-    "stack search": "./Dist/cli.js"
-  },
+  "main": "Dist/cli.js",
+  "bin":"./Dist/cli.js",
   "scripts": {
     "build": "tsc",
     "dev": "tsc && node Dist/index.js"

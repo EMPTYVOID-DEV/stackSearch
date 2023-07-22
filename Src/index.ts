@@ -1,6 +1,6 @@
 import { Browser, ElementHandle, Page } from "puppeteer";
 import proxyChain from "proxy-chain";
-import puppeteer from "C:/Users/hp/Documents/study/Projects/scraping/node_modules/puppeteer-extra/dist/index.esm.js";
+import puppeteer from "C:/Users/hp/Documents/study/Projects/stack-search/node_modules/puppeteer-extra/dist/index.esm.js";
 import stealthPlugin from "puppeteer-extra-plugin-stealth";
 import path, { dirname } from "path";
 import dotenv from "dotenv";
@@ -103,14 +103,12 @@ export async function main(
   const [browser, secureProxyUrl] = await proxyConnection(withProxy);
   const page = await browser.newPage();
   await page.goto("https://google.com/");
-  await typeField(page, "#APjFqb", questionQuery);
+  await typeField(page, "#APjFqb", questionQuery + " stackoverflow");
   await enterNavigate(page);
-  const [anchor, error] = await handleAsync<ElementHandle>(
-    page.$(
-      '.MjjYud > .g.Ww4FFb > .kvH3mc > .jGGQ5e a[href^="https://stackoverflow.com/"]'
-    )
+  const anchor = await page.$(
+    '.MjjYud > .g.Ww4FFb > .kvH3mc > .jGGQ5e a[href^="https://stackoverflow.com/"]'
   );
-  if (error)
+  if (!anchor)
     return {
       type: 1,
       data: "Never been asked before on stackoverflow",
@@ -118,10 +116,8 @@ export async function main(
   await clickNavigate(page, anchor);
   await timeout(2000);
   await randomClicks(page);
-  const [answersBlock, error2] = await handleAsync<ElementHandle>(
-    page.$("#answers")
-  );
-  if (error2)
+  const answersBlock = await page.$("#answers");
+  if (!answersBlock)
     return {
       type: 1,
       data: "Hasn't been answered yet in stackoverflow",

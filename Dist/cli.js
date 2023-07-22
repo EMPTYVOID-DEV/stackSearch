@@ -7,6 +7,11 @@ import spinner from "nanospinner";
 
 function welcome() {
   console.log(`\n${chalk.cyan.bold("welcome to stack search")}\n`);
+  console.log(
+    `${chalk.yellow(
+      `Dont add stackoverflow prefix or suffix to you question the package add it by default`
+    )}\n`
+  );
 }
 async function askForParams() {
   const question = await inquirer.prompt({
@@ -33,9 +38,7 @@ async function askForParams() {
 async function displayAnswers(answers, fetchSpinner) {
   let currentAnswer = 0;
   fetchSpinner.success({
-    text: `Your answers are :
-        ${chalk.cyan(answers[currentAnswer])}
-        `,
+    text: `Your answers are :\n${chalk.cyan(answers[currentAnswer])}`,
   });
   while (currentAnswer < answers.length - 1) {
     currentAnswer++;

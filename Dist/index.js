@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import proxyChain from "proxy-chain";
 import puppeteer from "puppeteer-extra";
 import stealthPlugin from "puppeteer-extra-plugin-stealth";
@@ -80,24 +78,21 @@ export async function main(questionQuery, withProxy) {
   const [browser, secureProxyUrl] = await proxyConnection(withProxy);
   const page = await browser.newPage();
   await page.goto("https://google.com/");
-  await typeField(page, "#APjFqb", questionQuery);
+  await typeField(page, "#APjFqb", questionQuery + " stackoverflow");
   await enterNavigate(page);
-  const [anchor, error] = await handleAsync(
-    page.$(
-      '.MjjYud > .g.Ww4FFb > .kvH3mc > .jGGQ5e a[href^="https://stackoverflow.com/"]'
-    )
+  const anchor = await page.$(
+    '.MjjYud > .g.Ww4FFb > .kvH3mc > .jGGQ5e a[href^="https://stackoverflow.com/"]'
   );
-  if (error)
+  if (!anchor)
     return {
       type: 1,
       data: "Never been asked before on stackoverflow",
     };
   await clickNavigate(page, anchor);
-  await timeout(1200);
+  await timeout(2000);
   await randomClicks(page);
-  await timeout(1200);
-  const [answersBlock, error2] = await handleAsync(page.$("#answers"));
-  if (error2)
+  const answersBlock = await page.$("#answers");
+  if (!answersBlock)
     return {
       type: 1,
       data: "Hasn't been answered yet in stackoverflow",
@@ -112,6 +107,7 @@ export async function main(questionQuery, withProxy) {
     )
   );
   await browser.close();
-  await proxyChain.closeAnonymizedProxy(secureProxyUrl, true);
+  withProxy && (await proxyChain.closeAnonymizedProxy(secureProxyUrl, true));
   return { type: 0, data: answers };
 }
+main("statically server react app from fastapi", false);
