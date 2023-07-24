@@ -1,4 +1,4 @@
-#!C:/Users/hp/Documents/node/main/nodejs/node
+#!D:/Documents/node/main/nodejs/node
 import { main } from "./index.js";
 import inquirer from "inquirer";
 import chalk from "chalk";

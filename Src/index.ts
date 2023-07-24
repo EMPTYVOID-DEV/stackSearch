@@ -1,6 +1,6 @@
 import { Browser, ElementHandle, Page } from "puppeteer";
 import proxyChain from "proxy-chain";
-import puppeteer from "C:/Users/hp/Documents/study/Projects/stack-search/node_modules/puppeteer-extra/dist/index.esm.js";
+import puppeteer from "puppeteer-extra";
 import stealthPlugin from "puppeteer-extra-plugin-stealth";
 import path, { dirname } from "path";
 import dotenv from "dotenv";
@@ -103,14 +103,14 @@ async function proxyConnection(withProxy: boolean): Promise<[Browser, string]> {
     const exposedProxyUrl = `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_URL}`;
     const secureProxyUrl = await proxyChain.anonymizeProxy(exposedProxyUrl);
     let browser: Browser = await puppeteer.launch({
-      headless: "old",
+      headless: false,
       executablePath: process.env.LOCAL_BROWSER_PATH,
       args: [`--proxy-server=${secureProxyUrl}`],
     });
     return [browser, secureProxyUrl];
   }
   let browser: Browser = await puppeteer.launch({
-    headless: "old",
+    headless: false,
     executablePath: process.env.LOCAL_BROWSER_PATH,
   });
   return [browser, ""];
