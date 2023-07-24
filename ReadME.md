@@ -1,4 +1,4 @@
-## StackOverflow seacrh cli tool
+## StackOverflow search cli tool
 
 ### Setup
 
