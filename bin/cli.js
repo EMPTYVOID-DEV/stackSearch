@@ -8,7 +8,7 @@ function welcome() {
   console.log(`\n${chalk.cyan.bold("welcome to stack search")}\n`);
   console.log(
     `${chalk.yellow(
-      `Dont add stackoverflow prefix or suffix to you question the package add it by default`
+      `Dont add stackoverflow prefix or suffix to your question the package add it by default`
     )}\n`
   );
 }

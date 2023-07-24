@@ -103,14 +103,14 @@ async function proxyConnection(withProxy: boolean): Promise<[Browser, string]> {
     const exposedProxyUrl = `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_URL}`;
     const secureProxyUrl = await proxyChain.anonymizeProxy(exposedProxyUrl);
     let browser: Browser = await puppeteer.launch({
-      headless: false,
+      headless: true,
       executablePath: process.env.LOCAL_BROWSER_PATH,
       args: [`--proxy-server=${secureProxyUrl}`],
     });
     return [browser, secureProxyUrl];
   }
   let browser: Browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     executablePath: process.env.LOCAL_BROWSER_PATH,
   });
   return [browser, ""];
